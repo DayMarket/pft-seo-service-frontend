@@ -1,6 +1,4 @@
-# vue3-frontend-csr-boilerplate
-
-This template should help get you started developing with Vue 3 in Vite.
+# pft-seo-service-frontend
 
 ## Recommended IDE Setup
 

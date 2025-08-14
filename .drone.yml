@@ -4,7 +4,7 @@ load: pft_frontend_csr.jsonnet
 data:
   nodeImage: "node:20.10.0"
   dockerfilePath: "Dockerfile"
-  projectName: "vue3-csr-boilerplate"
+  projectName: "pft-seo-service-frontend"
   dockerfileArgs: '{
     "default": {
       "VITE_APP_SWAGGER_ENDPOINT": "https://api.dev.cluster.daymarket.uz/api/swagger-central/docs/89839",

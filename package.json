@@ -1,5 +1,5 @@
 {
-  "name": "vue3-frontend-csr-boilerplate",
+  "name": "pft-seo-service-frontend",
   "version": "0.0.0",
   "private": true,
   "scripts": {
@@ -12,11 +12,11 @@
   },
   "dependencies": {
     "@growthbook/growthbook": "^1.4.1",
-    "@market-tech/clickstream-client-js": "^3.0.10",
+    "@market-tech/clickstream-client-js": "^3.0.15",
     "@market-tech/frontend-auth-sdk": "^1.4.2",
     "@market-tech/frontend-common-linters": "^2.0.8",
     "@tanstack/vue-query": "^5.51.3",
-    "@uzum/ui-kit": "^1.13.0",
+    "@uzum/ui-kit": "^1.23.0",
     "@vueuse/core": "^13.0.0",
     "@vueuse/integrations": "^13.0.0",
     "axios": "^1.8.4",
@@ -40,7 +40,7 @@
     "prettier": "3.5.3",
     "sass": "^1.86.1",
     "typescript": "~5.8.0",
-    "vite": "^6.2.1",
+    "vite": "^6.3.5",
     "vite-plugin-vue-devtools": "^7.7.2",
     "vue-tsc": "^2.2.8"
   }
