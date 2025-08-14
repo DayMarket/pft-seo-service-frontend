@@ -1,0 +1,42 @@
+{
+  "extends": ["@vue/tsconfig/tsconfig.dom.json", ],
+  "compilerOptions": {
+    "sourceMap": true,
+    "types": ["node"],
+    "experimentalDecorators": true,
+    "target": "es2017",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "esModuleInterop": true,
+    "moduleResolution": "bundler",
+    "typeRoots" : ["./node_modules/@types", "./node_modules/@yandex/ymaps3-types" ,"src/"],
+    "allowJs": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "useDefineForClassFields": true,
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "baseUrl": "./src",
+    "paths": {
+      "$app/*": ["app/*"],
+      "$shared/*": ["shared/*"],
+      "$assets/*": ["shared/assets/*"],
+      "$api": ["shared/api/client"],
+      "$pages/*": ["pages/*"]
+    }
+  },
+  "exclude": [
+    "node_modules"
+  ],
+  "typeRoots": [
+    "./src/api.d.ts"
+  ]
+}

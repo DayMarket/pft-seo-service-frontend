@@ -1,0 +1,30 @@
+name: Version builder
+
+on:
+  pull_request:
+    types: [ closed ]
+    branches: [ master ]
+
+jobs:
+  tag_push_release:
+    permissions: write-all
+    outputs:
+      version: ${{ steps.auto_bump.outputs.tag }}
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.base_ref }}
+      - name: Auto bump version
+        id: auto_bump
+        uses: DayMarket/action-auto-bump-version@v2
+  add_release_info:
+    needs: tag_push_release
+    uses: DayMarket/frontend-ci-templates/.github/workflows/add_release_info.yml@master
+    secrets: inherit
+    with:
+      version: ${{needs.tag_push_release.outputs.version}}
+      project: "VUE-3-CSR-BOILERPLATE"
+      area: "Frontend"
+      slack_channels_id: ""

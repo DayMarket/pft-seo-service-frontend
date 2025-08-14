@@ -1,0 +1,57 @@
+# Server configuration.
+server:
+  # The minimum number of replicas.
+  replicas: 1
+
+  strategy:
+    type: Recreate
+
+  # Ingress configuration.
+  ingress:
+    external:
+      enabled: true
+      annotations:
+        nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+        kubernetes.io/ingress.allow-http: 'false'
+        kubernetes.io/tls-acme: 'true'
+        nginx.ingress.kubernetes.io/proxy-buffering: 'on'
+        nginx.ingress.kubernetes.io/proxy-buffer-size: '16k'
+        nginx.ingress.kubernetes.io/auth-signin: 'https://oauth2.dev.cluster.daymarket.uz/oauth2/start?rd=https://$host$request_uri$is_args$args'
+        nginx.ingress.kubernetes.io/auth-url: 'https://oauth2.dev.cluster.daymarket.uz/oauth2/auth'
+        nginx.ingress.kubernetes.io/use-regex: "true"
+      hosts:
+        - vue3-csr-boilerplate.dev.cluster.daymarket.uz
+      mainPaths:
+        - path: / # Тут пишутся конкретные пути по которым можно открыть ваш фронт корня достаточно чтобы открывать по всем, но иногда нужно на разные урлы вешать разные приложения
+          pathType: ImplementationSpecific
+          port: 80
+      additionalPaths: []
+    internal:
+      enabled: true
+      annotations:
+        nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+        kubernetes.io/ingress.allow-http: 'false'
+        kubernetes.io/tls-acme: 'true'
+        nginx.ingress.kubernetes.io/proxy-buffering: 'on'
+        nginx.ingress.kubernetes.io/proxy-buffer-size: '16k'
+        nginx.ingress.kubernetes.io/use-regex: "true"
+      hosts:
+        - fintech-landings.dev.cluster.daymarket.uz
+      mainPaths:
+        - path: / # Тут пишутся конкретные пути по которым можно открыть ваш фронт корня достаточно чтобы открывать по всем, но иногда нужно на разные урлы вешать разные приложения
+          pathType: ImplementationSpecific
+          port: 80
+    development:
+      className: nginx
+      enabled: false
+
+  # NodeSelector configuration of the validators.
+  nodeSelector:
+    app_type: apps
+
+  # Tolerations of the validators pods.
+  tolerations:
+    - key: app_type
+      operator: Equal
+      value: apps
+      effect: NoSchedule

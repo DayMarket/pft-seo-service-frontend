@@ -1,0 +1,169 @@
+# Image pull policy. Possible values: Always, Never, IfNotPresent.
+pullPolicy: IfNotPresent
+# Image pull secret name.
+pullSecret: ""
+
+# Repository information.
+repo:
+  # Repository name.
+  name: ""
+  # Repository branch on which the chart was built.
+  branch: ""
+  # Repository maintainer.
+  maintainer: ""
+  # Last commit hash on which the chart was built.
+  lastCommitHash: ""
+
+# Alerts configuration.
+alerts:
+  # Slack channel for alerts.
+  slackChannel: ""
+
+# Server configuration.
+server:
+  # Docker image of the server application.
+  image: ""
+
+  monitoring:
+    enabled: false
+
+  # The minimum number of replicas.
+  replicas: 1
+
+  # Application level configs.
+  config:
+    debug: true
+    logger:
+      level: trace
+
+  # The resources allocated for each replica, both requests and limits.
+  resources:
+    requests:
+      cpu: 1
+      memory: 512Mi
+    limits:
+      cpu: 1
+      memory: 512Mi
+
+  # Service configuration. Use for cluster migration.
+  service:
+    # Is service enabled?
+    enabled: true
+    type: ClusterIP
+    nameOverride: ""
+    ports:
+      # API configuration.
+      - name: http
+        # Protocol configuration
+        protocol: TCP
+        # Port configuration.
+        ports:
+          # Port inside the container.
+          internal: 80
+          # External service port.
+          external: 80
+      - name: debug
+        # Protocol configuration
+        protocol: TCP
+        # Port configuration.
+        ports:
+          # Port inside the container.
+          internal: 9229
+          # External service port.
+          external: 9229
+
+  # Probes configuration.
+  probes:
+    liveness:
+      httpGet:
+        path: /health
+        port: 80
+        scheme: HTTP
+      initialDelaySeconds: 20
+      timeoutSeconds: 1
+      periodSeconds: 10
+      successThreshold: 1
+      failureThreshold: 3
+
+  # Tracing configuration.
+  tracing:
+    # Jaeger configuration.
+    jaeger:
+      # Inject Jaeger Agent sidecar?
+      injectAgent: false
+
+  # Ingress configuration.
+  ingress:
+    external:
+      enabled: true
+      labels: {}
+      basicAuth:
+        enabled: false
+        username: login
+        password: pass
+        text: Authentication Required
+      annotations: {}
+      className: nginx
+      hosts: []
+      mainPaths:
+        - path: /
+          pathType: ImplementationSpecific
+          port: 80
+      additionalPaths: []
+    internal:
+      enabled: false
+      labels: {}
+      annotations:
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        kubernetes.io/ingress.allow-http: "false"
+        kubernetes.io/tls-acme: "true"
+        nginx.ingress.kubernetes.io/proxy-buffering: "on"
+      className: nginx-internal
+      hosts: []
+      mainPaths:
+        - path: /
+          pathType: ImplementationSpecific
+          port: 80
+    development:
+      enabled: false
+      labels: {}
+      annotations:
+        nginx.ingress.kubernetes.io/ssl-redirect: "true"
+        kubernetes.io/ingress.allow-http: "false"
+        kubernetes.io/tls-acme: "true"
+        nginx.ingress.kubernetes.io/proxy-buffering: "on"
+      className: nginx
+      hosts: []
+      mainPaths:
+        - path: /
+          pathType: ImplementationSpecific
+          port: 80
+
+    additionalPaths: []
+
+
+  # NodeSelector configuration of the validators.
+  nodeSelector: {}
+
+  # Deployment affinity configuration. If not set the default one will be used.
+  affinity: {}
+
+  # Tolerations of the validators pods.
+  tolerations: []
+
+  # Annotations used in the server resources.
+  annotations: {}
+
+
+  autoscaling:
+    enabled: false
+    replicas:
+      min: 3
+      max: 10
+    targetCPU: 80
+    targetRAM: 1500Mi
+
+# Annotations used in all application resources.
+annotations: {}
+# Labels used in all application resources.
+labels: {}
