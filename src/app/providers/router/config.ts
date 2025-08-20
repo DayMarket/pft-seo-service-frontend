@@ -7,12 +7,10 @@ import {
   type RouterOptions,
 } from 'vue-router';
 
-import { routesWithPrefix } from '$app/providers/router/routes.ts';
-import { getLocale } from '$shared/i18n/get-locale.ts';
-import { setLocale } from '$shared/i18n/set-locale.ts';
+import { routes } from '$app/providers/router/routes.ts';
 
 export const options: RouterOptions = {
-  routes: routesWithPrefix,
+  routes,
   history: createWebHistory(),
   linkActiveClass: 'active-link',
   linkExactActiveClass: 'exact-active-link',
@@ -52,52 +50,15 @@ export const options: RouterOptions = {
 // Reload protection
 export function guard(router: Router) {
   router.beforeEach(async (to, from, next) => {
-    const lang =
-      typeof to.params.lang === 'string'
-        ? to.params.lang.toLowerCase()
-        : to.params.lang?.[0]?.toLowerCase();
-
-    const locale = getLocale();
     const pathIsNotSame = from.name ? !isSameRoute(to, from) : to.path !== window.location.pathname;
 
-    if (lang && pathIsNotSame) {
+    if (pathIsNotSame) {
       window.location.href = to.fullPath;
 
       return false;
     }
 
-    document.documentElement.lang = locale;
-    document.querySelector('meta[http-equiv="content-language"]')?.setAttribute('content', locale);
-
-    const routeToWithLocale = {
-      name: to.name,
-      params: {
-        ...to.params,
-        lang: lang || locale,
-      },
-      query: to.query,
-    };
-
-    if (!lang) {
-      if (isSameRoute(from, routeToWithLocale as unknown as RouteLocationNormalized)) {
-        next(routeToWithLocale);
-
-        return false;
-      } else {
-        next(routeToWithLocale);
-
-        return false;
-      }
-    } else if (lang !== locale) {
-      setLocale(lang as 'uz' | 'ru');
-      next(routeToWithLocale);
-
-      return false;
-    } else {
-      next();
-
-      return true;
-    }
+    next();
   });
 
   return router;

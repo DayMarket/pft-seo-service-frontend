@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "api:create": "node src/shared/api/generate_api.ts",
+    "api:create": "node scripts/generate-api.ts",
     "preview": "vite preview",
     "type-check": "vue-tsc --build",
     "format": "prettier --write src/"

@@ -1,42 +1,18 @@
 <script setup lang="ts">
 import {
   SVGCheckcircleoutlined24,
-  SVGFlagrussiamulticolor24,
-  SVGFlaguzbekistanmulticolor24,
   SVGHeartduocolor28,
   UListItem,
   USidebar,
   UTypography,
 } from '@uzum/ui-kit';
-import { useI18n } from 'vue-i18n';
-
-import { getLocale } from '$shared/i18n/get-locale.ts';
-import { setLocale } from '$shared/i18n/set-locale.ts';
-import { ELocale } from '$shared/i18n/types.ts';
-
-const { t } = useI18n();
-
-const availableLocales = [
-  {
-    key: ELocale.RU,
-    name: 'Русский (RUS)',
-    icon: SVGFlagrussiamulticolor24,
-  },
-  {
-    key: ELocale.UZ,
-    name: "O'zbek (UZB)",
-    icon: SVGFlaguzbekistanmulticolor24,
-  },
-];
 </script>
 
 <template>
   <div class="wrapper">
     <u-sidebar class="sidebar" theme="dark" v-bind="{ modelValue: false }">
       <template #content>
-        <u-typography color="accented">
-          {{ t('home') }}
-        </u-typography>
+        <u-typography color="accented">Домашняя страница</u-typography>
         <div class="p-1">
           <router-link v-slot="{ navigate }" to="/" custom>
             <u-list-item theme="dark" align="center" @click="navigate">
@@ -55,21 +31,6 @@ const availableLocales = [
             </u-list-item>
           </router-link>
         </div>
-      </template>
-      <template #footer>
-        <u-list-item
-          v-for="locale in availableLocales"
-          :key="locale.key"
-          theme="dark"
-          align="center"
-          :active="locale.key === getLocale()"
-          @click.stop.prevent="setLocale(locale.key)"
-        >
-          <template #prepend>
-            <component :is="locale.icon" width="24" height="24" />
-          </template>
-          {{ locale.name }}
-        </u-list-item>
       </template>
     </u-sidebar>
     <RouterView class="view" />
