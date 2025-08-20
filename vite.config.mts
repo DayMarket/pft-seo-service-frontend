@@ -8,7 +8,7 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 export default defineConfig({
   plugins: [vue(), mkcert(), vueDevTools(), tsconfigPaths()],
   server: {
-    host: 'customers.dev.internal.daymarket.uz',
+    // host: 'customers.dev.internal.daymarket.uz',
     // https: true,
     // port: 443,
     // host: '0.0.0.0',
@@ -26,7 +26,7 @@ export default defineConfig({
     rollupOptions: {
       output: {
         entryFileNames: `[name].[hash].js`,
-      }
-    }
-  }
+      },
+    },
+  },
 });

@@ -1,18 +1,18 @@
 {
-  "extends": ["@vue/tsconfig/tsconfig.dom.json", ],
+  "extends": ["@vue/tsconfig/tsconfig.dom.json"],
   "compilerOptions": {
     "sourceMap": true,
     "types": ["node"],
     "experimentalDecorators": true,
     "target": "es2017",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "esModuleInterop": true,
-    "moduleResolution": "bundler",
-    "typeRoots" : ["./node_modules/@types", "./node_modules/@yandex/ymaps3-types" ,"src/"],
+    "moduleResolution": "node",
+    "typeRoots": [
+      "./node_modules/@types",
+      "./node_modules/@yandex/ymaps3-types",
+      "src/"
+    ],
     "allowJs": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
@@ -33,10 +33,6 @@
       "$pages/*": ["pages/*"]
     }
   },
-  "exclude": [
-    "node_modules"
-  ],
-  "typeRoots": [
-    "./src/api.d.ts"
-  ]
+  "exclude": ["node_modules"],
+  "typeRoots": ["./src/api.d.ts"]
 }

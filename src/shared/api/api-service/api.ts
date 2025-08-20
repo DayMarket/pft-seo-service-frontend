@@ -85,6 +85,16 @@ export interface PaginatedListingResponse {
 
 export type UpdateListingDto = object;
 
+export interface UpdateListingStatusDto {
+  status: "ACTIVE" | "NOT_ACTIVE";
+}
+
+export interface UpdateListingSEODto {
+  seo_title?: BaseJsonDto;
+  seo_header?: BaseJsonDto;
+  seo_meta_tag?: BaseJsonDto;
+}
+
 export interface Category {
   id: number;
   path: string;
@@ -540,10 +550,12 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @response `200` `Listing`
      * @response `404` `void` Listing not found
      */
-    listingsControllerUpdateListingStatus: (id: number, params: RequestParams = {}) =>
+    listingsControllerUpdateListingStatus: (id: number, data: UpdateListingStatusDto, params: RequestParams = {}) =>
       this.request<Listing, void>({
         path: `/listings/${id}/status`,
         method: "PUT",
+        body: data,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),
@@ -558,10 +570,12 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @response `200` `Listing`
      * @response `404` `void` Listing not found
      */
-    listingsControllerUpdateListingSeo: (id: number, params: RequestParams = {}) =>
+    listingsControllerUpdateListingSeo: (id: number, data: UpdateListingSEODto, params: RequestParams = {}) =>
       this.request<Listing, void>({
         path: `/listings/${id}/seo`,
         method: "PUT",
+        body: data,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),

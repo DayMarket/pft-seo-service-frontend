@@ -2,8 +2,17 @@ import type { RouteRecordRaw } from 'vue-router';
 
 export const routes: RouteRecordRaw[] = [
   {
-    path: '',
-    name: 'home',
-    component: () => import('$pages/home'),
+    path: '/',
+    redirect: '/listings',
+  },
+  {
+    path: '/listings',
+    name: 'listings',
+    component: () => import('$pages/listings'),
+  },
+  {
+    path: '/listings/:id',
+    name: 'listing-detail',
+    component: () => import('$pages/listing-detail'),
   },
 ];
