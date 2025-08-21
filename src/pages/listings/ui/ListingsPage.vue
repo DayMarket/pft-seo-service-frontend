@@ -3,24 +3,32 @@ import {
   type ColumnDef,
   createColumnHelper,
   getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
   useVueTable,
 } from '@tanstack/vue-table';
 import {
+  FlexRender,
   UAlert,
   UButton,
+  UCheckbox,
   UGap,
   ULoader,
   UPaginationV2,
+  UPopup,
+  UPopupBody,
+  UPopupFooter,
+  UPopupHeader,
   USelectV2,
+  UTable,
   UTextField,
   UTypography,
 } from '@uzum/ui-kit';
-import { onMounted, ref } from 'vue';
+import { computed, h, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 import type { BaseJsonDto, Listing } from '$shared/api/api-service/api';
 import { listingsApi } from '$shared/api/listings';
-import BaseTable from '$shared/ui/base-table/base-table.vue';
 
 const router = useRouter();
 const listings = ref<Listing[]>([]);
@@ -35,9 +43,52 @@ const link = ref('');
 const seoTitle = ref('');
 const statusFilter = ref<{ value: string | null } | null>(null);
 const categoryFilter = ref<number | undefined>(undefined);
+const isDeleting = ref(false);
+const showDeleteConfirm = ref(false);
+const rowSelection = ref({});
 const columnHelper = createColumnHelper<Listing>();
 
 const columns = [
+  {
+    header: ({ table: table2 }: any) => {
+      return h(
+        'div',
+        {
+          class: ['d-flex', 'justify-content-center', 'align-items-center'],
+        },
+        [
+          h(UCheckbox, {
+            modelValue: table2.getIsAllRowsSelected(),
+            indeterminate: table2.getIsSomeRowsSelected(),
+            onInput: (e: any) => {
+              table2.getToggleAllRowsSelectedHandler()(e);
+            },
+          }),
+        ],
+      );
+    },
+    cell: ({ row }: any) => {
+      return h(
+        'div',
+        {
+          class: ['d-flex', 'justify-content-center', 'align-items-center'],
+        },
+        [
+          h(UCheckbox, {
+            modelValue: row.getIsSelected(),
+            disabled: !row.getCanSelect(),
+            'onUpdate:modelValue': (value: boolean) => {
+              row.toggleSelected(value);
+            },
+          }),
+        ],
+      );
+    },
+    id: 'select',
+    size: 40,
+    maxSize: 50,
+    minSize: 40,
+  },
   columnHelper.accessor('id', {
     header: 'ID',
     cell: (info) => info.getValue(),
@@ -69,7 +120,22 @@ const table = useVueTable({
     return listings.value;
   },
   columns,
+  state: {
+    get rowSelection() {
+      return rowSelection.value;
+    },
+  },
+  enableRowSelection: true,
+  onRowSelectionChange: (updater: any) => {
+    if (typeof updater === 'function') {
+      rowSelection.value = updater(rowSelection.value);
+    } else {
+      rowSelection.value = updater;
+    }
+  },
   getCoreRowModel: getCoreRowModel(),
+  getFilteredRowModel: getFilteredRowModel(),
+  getPaginationRowModel: getPaginationRowModel(),
 });
 
 const loadListings = async () => {
@@ -108,10 +174,6 @@ const onPageChange = (page: number) => {
   loadListings();
 };
 
-const onRowClick = (listing: Listing) => {
-  router.push(`/listings/${listing.id}`);
-};
-
 const applyFilters = () => {
   currentPage.value = 1;
   loadListings();
@@ -125,6 +187,33 @@ const clearFilters = () => {
   categoryFilter.value = undefined;
   currentPage.value = 1;
   loadListings();
+};
+
+const getSelectedListingIds = computed(() => {
+  return Object.keys(rowSelection.value)
+    .map((index) => listings.value[parseInt(index)]?.id)
+    .filter(Boolean);
+});
+
+const deleteSelectedListings = async () => {
+  const selectedIds = getSelectedListingIds.value;
+
+  if (selectedIds.length === 0) return;
+
+  isDeleting.value = true;
+
+  try {
+    await Promise.all(selectedIds.map((id) => listingsApi.deleteListing(id)));
+
+    rowSelection.value = {};
+    await loadListings();
+  } catch (err) {
+    error.value = 'Failed to delete listings';
+    console.error('Error deleting listings:', err);
+  } finally {
+    isDeleting.value = false;
+    showDeleteConfirm.value = false;
+  }
 };
 
 const formatSeoTitle = (title: BaseJsonDto | null | undefined) => {
@@ -212,17 +301,64 @@ onMounted(() => {
     <div v-else class="listings-page__content">
       <div class="listings-page__table-header">
         <u-typography variant="HeadlineMMedium">Listings ({{ totalItems }} штук)</u-typography>
+        <div v-if="getSelectedListingIds.length > 0" class="table-actions">
+          <u-typography variant="BodyMRegular">
+            Выбрано: {{ getSelectedListingIds.length }}
+          </u-typography>
+          <u-button
+            variant="primary-destructive"
+            :disabled="getSelectedListingIds.length === 0"
+            @click="showDeleteConfirm = true"
+          >
+            Удалить выбранные
+          </u-button>
+        </div>
       </div>
 
       <u-gap size="medium" />
 
-      <base-table
-        :table="table"
-        class="listings-table"
-        size="medium"
-        :row-clickable="true"
-        @rowClick="onRowClick"
-      />
+      <u-table class="listings-table" size="medium">
+        <div class="u-table-wrapper">
+          <table>
+            <thead>
+              <tr v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
+                <th
+                  v-for="header in headerGroup.headers"
+                  :key="header.id"
+                  :colSpan="header.colSpan"
+                  :style="{ width: header.getSize() + 'px' }"
+                >
+                  <flex-render
+                    v-if="!header.isPlaceholder"
+                    :render="header.column.columnDef.header"
+                    :props="header.getContext()"
+                  />
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="row in table.getRowModel().rows"
+                :key="row.id"
+                :class="{ 'u-table__tr--active': row.getIsSelected() }"
+              >
+                <td v-for="cell in row.getVisibleCells()" :key="cell.id">
+                  <div
+                    v-if="cell.column.id !== 'select'"
+                    style="cursor: pointer"
+                    @click="router.push(`/listings/${row.original.id}`)"
+                  >
+                    <flex-render :render="cell.column.columnDef.cell" :props="cell.getContext()" />
+                  </div>
+                  <div v-else>
+                    <flex-render :render="cell.column.columnDef.cell" :props="cell.getContext()" />
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </u-table>
 
       <u-gap size="large" />
 
@@ -235,6 +371,38 @@ onMounted(() => {
         />
       </div>
     </div>
+
+    <u-popup v-model="showDeleteConfirm">
+      <u-popup-header>
+        <u-typography variant="HeadlineMSemibold">Подтверждение удаления</u-typography>
+      </u-popup-header>
+      <u-popup-body>
+        <u-typography variant="BodyMRegular">
+          Вы уверены, что хотите удалить {{ getSelectedListingIds.length }}
+          {{ getSelectedListingIds.length === 1 ? 'листинг' : 'листингов' }}? Это действие нельзя
+          отменить.
+        </u-typography>
+      </u-popup-body>
+      <u-popup-footer>
+        <u-button
+          variant="primary-destructive"
+          :disabled="isDeleting"
+          @click="deleteSelectedListings"
+        >
+          {{ isDeleting ? 'Удаление...' : 'Удалить' }}
+        </u-button>
+
+        <u-gap size="small" />
+
+        <u-button
+          variant="secondary-neutral"
+          :disabled="isDeleting"
+          @click="showDeleteConfirm = false"
+        >
+          Отмена
+        </u-button>
+      </u-popup-footer>
+    </u-popup>
   </div>
 </template>
 
@@ -279,5 +447,11 @@ onMounted(() => {
     display: flex;
     justify-content: center;
   }
+}
+
+.table-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 </style>

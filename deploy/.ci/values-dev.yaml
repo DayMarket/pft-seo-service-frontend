@@ -18,9 +18,9 @@ server:
         nginx.ingress.kubernetes.io/proxy-buffer-size: '16k'
         nginx.ingress.kubernetes.io/auth-signin: 'https://oauth2.dev.cluster.daymarket.uz/oauth2/start?rd=https://$host$request_uri$is_args$args'
         nginx.ingress.kubernetes.io/auth-url: 'https://oauth2.dev.cluster.daymarket.uz/oauth2/auth'
-        nginx.ingress.kubernetes.io/use-regex: "true"
+        nginx.ingress.kubernetes.io/use-regex: 'true'
       hosts:
-        - vue3-csr-boilerplate.dev.cluster.daymarket.uz
+        - pft-seo-service-frontend.dev.cluster.daymarket.uz
       mainPaths:
         - path: / # Тут пишутся конкретные пути по которым можно открыть ваш фронт корня достаточно чтобы открывать по всем, но иногда нужно на разные урлы вешать разные приложения
           pathType: ImplementationSpecific
@@ -34,9 +34,9 @@ server:
         kubernetes.io/tls-acme: 'true'
         nginx.ingress.kubernetes.io/proxy-buffering: 'on'
         nginx.ingress.kubernetes.io/proxy-buffer-size: '16k'
-        nginx.ingress.kubernetes.io/use-regex: "true"
+        nginx.ingress.kubernetes.io/use-regex: 'true'
       hosts:
-        - fintech-landings.dev.cluster.daymarket.uz
+        - pft-seo-service-frontend.dev.cluster.daymarket.uz
       mainPaths:
         - path: / # Тут пишутся конкретные пути по которым можно открыть ваш фронт корня достаточно чтобы открывать по всем, но иногда нужно на разные урлы вешать разные приложения
           pathType: ImplementationSpecific
