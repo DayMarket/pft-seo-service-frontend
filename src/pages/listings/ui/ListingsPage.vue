@@ -4,7 +4,6 @@ import {
   createColumnHelper,
   getCoreRowModel,
   getFilteredRowModel,
-  getPaginationRowModel,
   useVueTable,
 } from '@tanstack/vue-table';
 import {
@@ -38,7 +37,7 @@ const error = ref<string | null>(null);
 const currentPage = ref(1);
 const totalPages = ref(0);
 const totalItems = ref(0);
-const pageSize = ref(10);
+const pageSize = ref(50);
 const searchQuery = ref('');
 const link = ref('');
 const seoTitle = ref('');
@@ -171,7 +170,7 @@ const table = useVueTable({
   },
   getCoreRowModel: getCoreRowModel(),
   getFilteredRowModel: getFilteredRowModel(),
-  getPaginationRowModel: getPaginationRowModel(),
+  manualPagination: true,
 });
 
 const loadListings = async () => {
@@ -579,5 +578,15 @@ tr {
   display: flex;
   align-items: center;
   gap: 16px;
+}
+
+.listings-table {
+  :deep(td) {
+    padding: 12px !important;
+  }
+
+  :deep(th) {
+    padding: 12px !important;
+  }
 }
 </style>
