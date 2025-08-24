@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {
+  SVGLinkExternalLine,
   UAlert,
   UButton,
   UGap,
@@ -8,7 +9,6 @@ import {
   UPopupBody,
   UPopupFooter,
   UPopupHeader,
-  UTextArea,
   UTextField,
   UTypography,
 } from '@uzum/ui-kit';
@@ -23,7 +23,6 @@ const router = useRouter();
 const listing = ref<Listing | null>(null);
 const isLoading = ref(false);
 const error = ref<string | null>(null);
-const isEditingSeo = ref(false);
 const isDeleting = ref(false);
 const showDeleteConfirm = ref(false);
 
@@ -86,6 +85,10 @@ const toggleStatus = async () => {
   }
 };
 
+const openLink = (url: string) => {
+  window.open(url, '_blank');
+};
+
 const saveSeoChanges = async () => {
   if (!listing.value) return;
 
@@ -108,7 +111,6 @@ const saveSeoChanges = async () => {
     const response = await listingsApi.updateListingSeo(listing.value.id, seoData);
 
     listing.value = response.data;
-    isEditingSeo.value = false;
   } catch (err) {
     error.value = 'Не удалось обновить SEO информацию';
     console.error('Error updating SEO:', err);
@@ -129,21 +131,6 @@ const deleteListing = async () => {
   } finally {
     isDeleting.value = false;
     showDeleteConfirm.value = false;
-  }
-};
-
-const cancelSeoEdit = () => {
-  isEditingSeo.value = false;
-
-  if (listing.value) {
-    seoForm.value = {
-      seo_title_ru: listing.value.seo_title?.ru || '',
-      seo_title_uz: listing.value.seo_title?.uz || '',
-      seo_header_ru: listing.value.seo_header?.ru || '',
-      seo_header_uz: listing.value.seo_header?.uz || '',
-      seo_meta_tag_ru: listing.value.seo_meta_tag?.ru || '',
-      seo_meta_tag_uz: listing.value.seo_meta_tag?.uz || '',
-    };
   }
 };
 
@@ -203,51 +190,47 @@ onMounted(() => {
 
         <div class="info-grid">
           <div class="info-item">
-            <u-typography variant="BodyMSemibold">ID:</u-typography>
-            <u-typography variant="BodyMRegular">{{ listing.id }}</u-typography>
+            <u-text-field :model-value="listing.id.toString()" outerLabel="ID" disabled />
           </div>
 
           <div class="info-item">
-            <u-typography variant="BodyMSemibold">Category ID:</u-typography>
-            <u-typography variant="BodyMRegular">{{ listing.category_id }}</u-typography>
+            <u-text-field
+              :model-value="listing.category_id.toString()"
+              outerLabel="Category ID"
+              disabled
+            />
           </div>
 
           <div class="info-item">
-            <u-typography variant="BodyMSemibold">Offer ID:</u-typography>
-            <u-typography variant="BodyMRegular">{{ listing.offer_id }}</u-typography>
+            <u-text-field :model-value="listing.sort.toString()" outerLabel="Sort" disabled />
           </div>
 
           <div class="info-item">
-            <u-typography variant="BodyMSemibold">Shop ID:</u-typography>
-            <u-typography variant="BodyMRegular">{{ listing.shop_id }}</u-typography>
-          </div>
-
-          <div class="info-item">
-            <u-typography variant="BodyMSemibold">Sort:</u-typography>
-            <u-typography variant="BodyMRegular">{{ listing.sort }}</u-typography>
-          </div>
-
-          <div class="info-item">
-            <u-typography variant="BodyMSemibold">Updated:</u-typography>
-            <u-typography variant="BodyMRegular">{{ formatDate(listing.updated_at) }}</u-typography>
+            <u-text-field
+              :model-value="formatDate(listing.updated_at)"
+              outerLabel="Updated"
+              disabled
+            />
           </div>
         </div>
-      </div>
 
-      <div class="links-card">
+        <u-gap size="medium" />
+
         <div class="query-grid">
           <div class="query-item">
-            <u-typography variant="BodyMSemibold">Query на русском:</u-typography>
-            <u-typography variant="BodyMRegular">
-              {{ formatJson(listing.query_text).ru }}
-            </u-typography>
+            <u-text-field
+              :model-value="formatJson(listing.query_text).ru"
+              outerLabel="Query на русском"
+              disabled
+            />
           </div>
 
           <div class="query-item">
-            <u-typography variant="BodyMSemibold">Query на узбекском:</u-typography>
-            <u-typography variant="BodyMRegular">
-              {{ formatJson(listing.query_text).uz }}
-            </u-typography>
+            <u-text-field
+              :model-value="formatJson(listing.query_text).uz"
+              outerLabel="Query на узбекском"
+              disabled
+            />
           </div>
         </div>
 
@@ -255,42 +238,53 @@ onMounted(() => {
 
         <div class="links-grid">
           <div class="link-item">
-            <u-typography variant="BodyMSemibold">Link на русском:</u-typography>
-            <u-typography variant="BodyMRegular">{{ formatJson(listing.link).ru }}</u-typography>
+            <u-text-field
+              :model-value="formatJson(listing.link).ru"
+              outerLabel="Link на русском"
+              disabled
+            >
+              <template #append>
+                <s-v-g-link-external-line
+                  width="20"
+                  class="link-icon"
+                  @click="openLink(formatJson(listing.link).ru)"
+                />
+              </template>
+            </u-text-field>
           </div>
 
           <div class="link-item">
-            <u-typography variant="BodyMSemibold">Link на узбекском:</u-typography>
-            <u-typography variant="BodyMRegular">{{ formatJson(listing.link).uz }}</u-typography>
+            <u-text-field
+              :model-value="formatJson(listing.link).uz"
+              outerLabel="Link на узбекском"
+              disabled
+            >
+              <template #append>
+                <s-v-g-link-external-line
+                  width="20"
+                  class="link-icon"
+                  @click="openLink(formatJson(listing.link).uz)"
+                />
+              </template>
+            </u-text-field>
           </div>
         </div>
       </div>
 
       <div class="seo-card">
-        <div class="seo-card__header">
-          <u-typography variant="HeadlineMMedium">SEO Информация</u-typography>
-          <u-button v-if="!isEditingSeo" variant="primary-neutral" @click="isEditingSeo = true">
-            Редактировать SEO
-          </u-button>
-        </div>
-
-        <u-gap size="medium" />
-
         <div class="seo-edit">
           <div class="seo-edit-section">
             <u-typography variant="BodyLSemibold">SEO title</u-typography>
             <div class="seo-edit-inputs">
               <u-text-field
                 v-model="seoForm.seo_title_ru"
-                label="Русский"
+                outerLabel="Русский"
                 placeholder="Введите SEO заголовок на русском языке"
-                :disabled="!isEditingSeo"
               />
               <u-text-field
                 v-model="seoForm.seo_title_uz"
-                label="Узбекский"
+                outerLabel="Узбекский"
                 placeholder="Введите SEO заголовок на узбекском языке"
-                :disabled="!isEditingSeo"
               />
             </div>
           </div>
@@ -300,15 +294,13 @@ onMounted(() => {
             <div class="seo-edit-inputs">
               <u-text-field
                 v-model="seoForm.seo_header_ru"
-                label="Русский"
+                outerLabel="Русский"
                 placeholder="Введите SEO шапку на русском языке"
-                :disabled="!isEditingSeo"
               />
               <u-text-field
                 v-model="seoForm.seo_header_uz"
-                label="Узбекский"
+                outerLabel="Узбекский"
                 placeholder="Введите SEO шапку на узбекском языке"
-                :disabled="!isEditingSeo"
               />
             </div>
           </div>
@@ -316,28 +308,23 @@ onMounted(() => {
           <div class="seo-edit-section">
             <u-typography variant="BodyLSemibold">SEO meta tags</u-typography>
             <div class="seo-edit-inputs">
-              <u-text-area
+              <u-text-field
                 v-model="seoForm.seo_meta_tag_ru"
-                label="Русский"
+                outerLabel="Русский"
                 placeholder="Введите SEO мета-тег на русском языке"
-                :rows="3"
-                :disabled="!isEditingSeo"
               />
-              <u-text-area
+              <u-text-field
                 v-model="seoForm.seo_meta_tag_uz"
-                label="Узбекский"
+                outerLabel="Узбекский"
                 placeholder="Введите SEO мета-тег на узбекском языке"
-                :rows="3"
-                :disabled="!isEditingSeo"
               />
             </div>
           </div>
 
           <u-gap size="large" />
 
-          <div v-if="isEditingSeo" class="seo-edit-actions">
+          <div class="seo-edit-actions">
             <u-button @click="saveSeoChanges">Сохранить изменения</u-button>
-            <u-button variant="secondary-neutral" @click="cancelSeoEdit">Отмена</u-button>
           </div>
         </div>
       </div>
@@ -400,6 +387,10 @@ onMounted(() => {
   border-radius: 12px;
   border: 1px solid var(--uzum-color-border-subtle);
   background-color: var(--uzum-color-background-primary);
+
+  & :deep(input:disabled) {
+    color: var(--text-primary);
+  }
 }
 
 .info-card {
@@ -427,6 +418,12 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 4px;
+
+  & > .u-text-field {
+    & :deep(*) {
+      cursor: default;
+    }
+  }
 }
 
 .links-grid,
@@ -441,15 +438,22 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 4px;
+
+  & > .u-text-field {
+    width: 100%;
+
+    & :deep(*) {
+      cursor: default;
+    }
+
+    & :deep(.link-icon) {
+      cursor: pointer;
+    }
+  }
 }
 
-.seo-card {
-  &__header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    height: 40px;
-  }
+.link-icon:hover {
+  color: var(--text-primary);
 }
 
 .seo-edit {
@@ -466,6 +470,10 @@ onMounted(() => {
     grid-template-columns: 1fr 1fr;
     gap: 16px;
     margin-top: 8px;
+
+    & > .u-text-field {
+      width: 100%;
+    }
   }
 
   .seo-edit-actions {

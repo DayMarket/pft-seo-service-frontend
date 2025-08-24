@@ -33,11 +33,12 @@ import { listingsApi } from '$shared/api/listings';
 const router = useRouter();
 const listings = ref<Listing[]>([]);
 const isLoading = ref(false);
+const isLoadingButton = ref(-1);
 const error = ref<string | null>(null);
 const currentPage = ref(1);
 const totalPages = ref(0);
 const totalItems = ref(0);
-const pageSize = ref(50);
+const pageSize = ref(10);
 const searchQuery = ref('');
 const link = ref('');
 const seoTitle = ref('');
@@ -113,6 +114,39 @@ const columns = [
     header: 'Updated',
     cell: (info) => formatDate(info.getValue()),
   }),
+  {
+    id: 'actions',
+    header: 'Actions',
+    cell: ({ row }: { row: { original: Listing } }) => {
+      const listing = row.original;
+
+      return h(
+        'div',
+        {
+          class: ['d-flex', 'gap-2'],
+        },
+        [
+          h(
+            UButton,
+            {
+              size: 'small',
+              variant: listing.status === 'ACTIVE' ? 'primary-neutral' : 'primary-accented',
+              loading: isLoadingButton.value === listing.id,
+              onClick: (e: Event) => {
+                e.stopPropagation();
+                toggleListingStatus(listing);
+                isLoadingButton.value = listing.id;
+              },
+            },
+            listing.status === 'ACTIVE' ? 'Deactivate' : 'Activate',
+          ),
+        ],
+      );
+    },
+    size: 120,
+    maxSize: 150,
+    minSize: 100,
+  },
 ] as ColumnDef<Listing>[];
 
 const table = useVueTable({
@@ -126,7 +160,9 @@ const table = useVueTable({
     },
   },
   enableRowSelection: true,
-  onRowSelectionChange: (updater: any) => {
+  onRowSelectionChange: (
+    updater: ((prev: Record<string, boolean>) => Record<string, boolean>) | Record<string, boolean>,
+  ) => {
     if (typeof updater === 'function') {
       rowSelection.value = updater(rowSelection.value);
     } else {
@@ -195,6 +231,29 @@ const getSelectedListingIds = computed(() => {
     .filter(Boolean);
 });
 
+const toggleListingStatus = async (listing: Listing) => {
+  try {
+    const newStatus: 'ACTIVE' | 'NOT_ACTIVE' =
+      listing.status === 'ACTIVE' ? 'NOT_ACTIVE' : 'ACTIVE';
+
+    const statusData = { status: newStatus };
+
+    await listingsApi.updateListingStatus(listing.id, statusData);
+
+    // Обновляем статус в локальном массиве
+    const index = listings.value.findIndex((l) => l.id === listing.id);
+
+    if (index !== -1) {
+      listings.value[index].status = newStatus;
+    }
+  } catch (err) {
+    error.value = 'Не удалось обновить статус';
+    console.error('Error updating status:', err);
+  } finally {
+    isLoadingButton.value = -1;
+  }
+};
+
 const deleteSelectedListings = async () => {
   const selectedIds = getSelectedListingIds.value;
 
@@ -213,6 +272,50 @@ const deleteSelectedListings = async () => {
   } finally {
     isDeleting.value = false;
     showDeleteConfirm.value = false;
+  }
+};
+
+const activateSelectedListings = async () => {
+  const selectedIds = getSelectedListingIds.value;
+
+  if (selectedIds.length === 0) return;
+
+  isLoading.value = true;
+
+  try {
+    await Promise.all(
+      selectedIds.map((id) => listingsApi.updateListingStatus(id, { status: 'ACTIVE' })),
+    );
+
+    rowSelection.value = {};
+    await loadListings();
+  } catch (err) {
+    error.value = 'Failed to activate listings';
+    console.error('Error activating listings:', err);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+const deactivateSelectedListings = async () => {
+  const selectedIds = getSelectedListingIds.value;
+
+  if (selectedIds.length === 0) return;
+
+  isLoading.value = true;
+
+  try {
+    await Promise.all(
+      selectedIds.map((id) => listingsApi.updateListingStatus(id, { status: 'NOT_ACTIVE' })),
+    );
+
+    rowSelection.value = {};
+    await loadListings();
+  } catch (err) {
+    error.value = 'Failed to deactivate listings';
+    console.error('Error deactivating listings:', err);
+  } finally {
+    isLoading.value = false;
   }
 };
 
@@ -300,7 +403,7 @@ onMounted(() => {
 
     <div v-else class="listings-page__content">
       <div class="listings-page__table-header">
-        <u-typography variant="HeadlineMMedium">Listings ({{ totalItems }} штук)</u-typography>
+        <u-typography variant="HeadlineLMedium">Listings ({{ totalItems }} штук)</u-typography>
         <div v-if="getSelectedListingIds.length > 0" class="table-actions">
           <u-typography variant="BodyMRegular">
             Выбрано: {{ getSelectedListingIds.length }}
@@ -311,6 +414,21 @@ onMounted(() => {
             @click="showDeleteConfirm = true"
           >
             Удалить выбранные
+          </u-button>
+
+          <u-button
+            variant="primary-accented"
+            :disabled="getSelectedListingIds.length === 0"
+            @click="activateSelectedListings"
+          >
+            Activate
+          </u-button>
+          <u-button
+            variant="primary-neutral"
+            :disabled="getSelectedListingIds.length === 0"
+            @click="deactivateSelectedListings"
+          >
+            Deactivate
           </u-button>
         </div>
       </div>
@@ -342,12 +460,16 @@ onMounted(() => {
                 :key="row.id"
                 :class="{ 'u-table__tr--active': row.getIsSelected() }"
               >
-                <td v-for="cell in row.getVisibleCells()" :key="cell.id">
-                  <div
-                    v-if="cell.column.id !== 'select'"
-                    style="cursor: pointer"
-                    @click="router.push(`/listings/${row.original.id}`)"
-                  >
+                <td
+                  v-for="cell in row.getVisibleCells()"
+                  :key="cell.id"
+                  @click="
+                    cell.column.id !== 'select' &&
+                    cell.column.id !== 'actions' &&
+                    router.push(`/listings/${row.original.id}`)
+                  "
+                >
+                  <div v-if="cell.column.id !== 'select' && cell.column.id !== 'actions'">
                     <flex-render :render="cell.column.columnDef.cell" :props="cell.getContext()" />
                   </div>
                   <div v-else>
@@ -447,6 +569,10 @@ onMounted(() => {
     display: flex;
     justify-content: center;
   }
+}
+
+tr {
+  cursor: pointer;
 }
 
 .table-actions {
