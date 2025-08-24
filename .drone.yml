@@ -7,11 +7,14 @@ data:
   projectName: "pft-seo-service-frontend"
   dockerfileArgs: '{
     "default": {
-      "VITE_APP_SWAGGER_ENDPOINT": "https://pft-seo-service-api.dev.internal.daymarket.uz/api-json",
-      "VITE_API_BASE_URL": "https://pft-seo-service-api.dev.internal.daymarket.uz"
+      "VITE_APP_SWAGGER_ENDPOINT": "https://pft-seo-service.dev.cluster.daymarket.uz/api-json",
+      "VITE_API_BASE_URL": "https://pft-seo-service.dev.cluster.daymarket.uz"
     },
     "stage" : {},
-    "production": {},
+    "production": {
+      "VITE_APP_SWAGGER_ENDPOINT": "https://pft-seo-service.prod.cluster.daymarket.uz/api-json",
+      "VITE_API_BASE_URL": "https://pft-seo-service.prod.cluster.daymarket.uz"
+    },
     "beta": {}
   }'
   namespace: "svc-pft"
