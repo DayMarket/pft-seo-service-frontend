@@ -16,9 +16,9 @@ server:
         kubernetes.io/tls-acme: 'true'
         nginx.ingress.kubernetes.io/proxy-buffering: 'on'
         nginx.ingress.kubernetes.io/proxy-buffer-size: '16k'
-        nginx.ingress.kubernetes.io/use-regex: "true"
+        nginx.ingress.kubernetes.io/use-regex: 'true'
       hosts:
-        - fintech-landings.dev.cluster.daymarket.uz
+        - pft-seo-service-frontend.prod.cluster.daymarket.uz
       mainPaths:
         - path: / # Тут пишутся конкретные пути по которым можно открыть ваш фронт корня достаточно чтобы открывать по всем, но иногда нужно на разные урлы вешать разные приложения
           pathType: ImplementationSpecific
