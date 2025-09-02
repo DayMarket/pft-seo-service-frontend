@@ -1,8 +1,8 @@
 import {
   Api,
+  type BaseJsonDto,
   type CreateListingDto,
-  type UpdateListingSEODto,
-  type UpdateListingStatusDto,
+  type UpdateListingDto,
 } from '../api-service/api';
 
 const api = new Api({
@@ -23,13 +23,59 @@ export const listingsApi = {
 
   getListingById: (id: number) => api.listings.listingsControllerGetListingById(id),
 
-  updateListingSeo: (id: number, data: UpdateListingSEODto) =>
-    api.listings.listingsControllerUpdateListingSeo(id, data),
+  updateListing: (id: number, data: UpdateListingDto) =>
+    api.listings.listingsControllerUpdateListing(id, data),
+
+  updateListingSeo: async (
+    id: number,
+    data: { seo_title?: BaseJsonDto; seo_header?: BaseJsonDto; seo_meta_tag?: BaseJsonDto },
+  ) => {
+    // Получаем текущие данные листинга
+    const currentListing = await api.listings.listingsControllerGetListingById(id);
+    const currentData = currentListing.data;
+
+    // Создаем обновленный объект с новыми SEO данными
+    const updateData: UpdateListingDto = {
+      link: currentData.link,
+      status: currentData.status,
+      category_id: currentData.category_id,
+      offer_id: currentData.offer_id,
+      shop_id: currentData.shop_id,
+      sort: currentData.sort,
+      filters: currentData.filters,
+      seo_title: data.seo_title || currentData.seo_title,
+      seo_header: data.seo_header || currentData.seo_header,
+      seo_meta_tag: data.seo_meta_tag || currentData.seo_meta_tag,
+      query_text: currentData.query_text,
+    };
+
+    return api.listings.listingsControllerUpdateListing(id, updateData);
+  },
 
   deleteListing: (id: number) => api.listings.listingsControllerDeleteListing(id),
 
-  updateListingStatus: (id: number, data: UpdateListingStatusDto) =>
-    api.listings.listingsControllerUpdateListingStatus(id, data),
+  updateListingStatus: async (id: number, data: { status: string }) => {
+    // Получаем текущие данные листинга
+    const currentListing = await api.listings.listingsControllerGetListingById(id);
+    const currentData = currentListing.data;
+
+    // Создаем обновленный объект с новым статусом
+    const updateData: UpdateListingDto = {
+      link: currentData.link,
+      status: data.status,
+      category_id: currentData.category_id,
+      offer_id: currentData.offer_id,
+      shop_id: currentData.shop_id,
+      sort: currentData.sort,
+      filters: currentData.filters,
+      seo_title: currentData.seo_title,
+      seo_header: currentData.seo_header,
+      seo_meta_tag: currentData.seo_meta_tag,
+      query_text: currentData.query_text,
+    };
+
+    return api.listings.listingsControllerUpdateListing(id, updateData);
+  },
 
   createListing: (data: CreateListingDto) => api.listings.listingsControllerCreateListing(data),
 };

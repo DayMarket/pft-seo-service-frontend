@@ -42,6 +42,7 @@ export interface FilterDto {
 }
 
 export interface CreateListingDto {
+  id?: number;
   link: BaseJsonDto;
   /** @default "ACTIVE" */
   status: string;
@@ -83,16 +84,20 @@ export interface PaginatedListingResponse {
   hasPrev: boolean;
 }
 
-export type UpdateListingDto = object;
-
-export interface UpdateListingStatusDto {
-  status: "ACTIVE" | "NOT_ACTIVE";
-}
-
-export interface UpdateListingSEODto {
-  seo_title?: BaseJsonDto;
-  seo_header?: BaseJsonDto;
-  seo_meta_tag?: BaseJsonDto;
+export interface UpdateListingDto {
+  id?: number;
+  link: BaseJsonDto;
+  /** @default "ACTIVE" */
+  status: string;
+  category_id?: number;
+  offer_id?: number;
+  shop_id?: number;
+  sort: string;
+  filters: FilterDto[];
+  seo_title: BaseJsonDto;
+  seo_header: BaseJsonDto;
+  seo_meta_tag: BaseJsonDto;
+  query_text: BaseJsonDto;
 }
 
 export interface Category {
@@ -435,10 +440,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * @name ListingsControllerProcessJson
      * @summary Process listing records from JSON
      * @request POST:/listings/process-json
-     * @response `201` `UpdateListingDto`
+     * @response `201` `object`
      */
     listingsControllerProcessJson: (data: ProcessJsonDto, params: RequestParams = {}) =>
-      this.request<UpdateListingDto, any>({
+      this.request<object, any>({
         path: `/listings/process-json`,
         method: "POST",
         body: data,
@@ -537,46 +542,6 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
       this.request<void, void>({
         path: `/listings/${id}`,
         method: "DELETE",
-        ...params,
-      }),
-
-    /**
-     * @description Updates the status of a specific listing (ACTIVE/NOT_ACTIVE).
-     *
-     * @tags listings
-     * @name ListingsControllerUpdateListingStatus
-     * @summary Update listing status
-     * @request PUT:/listings/{id}/status
-     * @response `200` `Listing`
-     * @response `404` `void` Listing not found
-     */
-    listingsControllerUpdateListingStatus: (id: number, data: UpdateListingStatusDto, params: RequestParams = {}) =>
-      this.request<Listing, void>({
-        path: `/listings/${id}/status`,
-        method: "PUT",
-        body: data,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * @description Updates SEO-related fields (seo_title, seo_header, seo_meta_tag) of a specific listing.
-     *
-     * @tags listings
-     * @name ListingsControllerUpdateListingSeo
-     * @summary Update listing SEO information
-     * @request PUT:/listings/{id}/seo
-     * @response `200` `Listing`
-     * @response `404` `void` Listing not found
-     */
-    listingsControllerUpdateListingSeo: (id: number, data: UpdateListingSEODto, params: RequestParams = {}) =>
-      this.request<Listing, void>({
-        path: `/listings/${id}/seo`,
-        method: "PUT",
-        body: data,
-        type: ContentType.Json,
-        format: "json",
         ...params,
       }),
   };
