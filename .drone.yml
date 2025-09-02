@@ -6,7 +6,7 @@ data:
   dockerfilePath: "Dockerfile"
   projectName: "pft-seo-service-frontend"
   dockerfileArgs: '{
-    "default": {
+    "develop": {
       "VITE_APP_SWAGGER_ENDPOINT": "https://pft-seo-service.dev.cluster.daymarket.uz/api-json",
       "VITE_API_BASE_URL": "https://pft-seo-service.dev.cluster.daymarket.uz"
     },
